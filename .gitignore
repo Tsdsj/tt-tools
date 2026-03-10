@@ -1,0 +1,15 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.DotSettings
+.vs/
+
+# Local SDK
+dotnet-sdk/
+dotnet-install.ps1
+
+# IDE
+.idea/
+*.swp
