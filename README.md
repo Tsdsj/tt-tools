@@ -1,5 +1,8 @@
 # TtLauncher
 
+> 🇨🇳 [中文文档](./README_zh.md) | 🇬🇧 English
+
+**TtLauncher** 是一款运行于 Windows 的 WPF 个人效率启动器。  
 TtLauncher is a WPF launcher for personal productivity on Windows.
 
 Current target release: `beta-0.0.1`
