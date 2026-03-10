@@ -13,3 +13,7 @@ dotnet-install.ps1
 # IDE
 .idea/
 *.swp
+
+# Local outputs
+artifacts/
+publish/

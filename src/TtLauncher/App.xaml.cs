@@ -1,42 +1,49 @@
-﻿using System.Windows;
+using System.Windows;
 using TtLauncher.Commands;
 using TtLauncher.Providers;
 using TtLauncher.Services;
 using TtLauncher.ViewModels;
 using TtLauncher.Views;
 using Application = System.Windows.Application;
+using ToolStripMenuItem = System.Windows.Forms.ToolStripMenuItem;
 
 namespace TtLauncher;
 
+/// <summary>
+/// 应用程序入口
+/// </summary>
 public partial class App : Application
 {
     private System.Windows.Forms.NotifyIcon? _trayIcon;
 
     private void Application_Startup(object sender, StartupEventArgs e)
     {
-        // 组装依赖
         var appProvider = new AppSearchProvider();
+        var everythingSearchService = new EverythingSearchService();
+        var portInspectionService = new PortInspectionService();
+        var ocrPreprocessor = new DefaultOcrImagePreprocessor();
+        var ocrService = new OcrService(ocrPreprocessor);
+        var startupService = new StartupService();
+
         var router = new CommandRouter();
         router.RegisterDefault(appProvider);
-
-        // 后续扩展点：在此注册更多 Provider
-        // router.Register("f", new EverythingSearchProvider());
-        // router.Register("ocr", new OcrProvider());
-        // router.Register("port", new PortQueryProvider());
-        // router.Register("ports", new PortListProvider());
+        router.Register("f", new EverythingSearchProvider(everythingSearchService));
+        router.Register("ocr", new OcrSearchProvider(ocrService));
+        router.Register("port", new PortSearchProvider(portInspectionService, false));
+        router.Register("ports", new PortSearchProvider(portInspectionService, true));
 
         var indexService = new AppIndexService(appProvider);
         var hotkeyService = new HotkeyService();
         var viewModel = new MainViewModel(router, indexService);
         var mainWindow = new MainWindow(viewModel, hotkeyService);
 
-        // 托盘图标
-        SetupTrayIcon(mainWindow);
+        MainWindow = mainWindow;
+        SetupTrayIcon(mainWindow, startupService);
 
         mainWindow.Show();
     }
 
-    private void SetupTrayIcon(MainWindow window)
+    private void SetupTrayIcon(MainWindow window, StartupService startupService)
     {
         _trayIcon = new System.Windows.Forms.NotifyIcon
         {
@@ -51,6 +58,26 @@ public partial class App : Application
             window.Show();
             window.Activate();
         });
+
+        var startupMenuItem = new ToolStripMenuItem("开机自启动")
+        {
+            CheckOnClick = true,
+            Checked = startupService.IsEnabled()
+        };
+        startupMenuItem.Click += (_, _) =>
+        {
+            try
+            {
+                startupService.SetEnabled(startupMenuItem.Checked);
+            }
+            catch (Exception ex)
+            {
+                startupMenuItem.Checked = startupService.IsEnabled();
+                _trayIcon?.ShowBalloonTip(2500, "TtLauncher", $"设置开机自启动失败：{ex.Message}", System.Windows.Forms.ToolTipIcon.Warning);
+            }
+        };
+
+        menu.Items.Add(startupMenuItem);
         menu.Items.Add("-");
         menu.Items.Add("退出", null, (_, _) =>
         {
@@ -67,10 +94,10 @@ public partial class App : Application
         };
     }
 
+    /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
         _trayIcon?.Dispose();
         base.OnExit(e);
     }
 }
-

@@ -11,10 +11,22 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyTitle>TtLauncher</AssemblyTitle>
     <Description>个人效率启动器</Description>
+    <Version>0.0.1-beta.1</Version>
+    <AssemblyVersion>0.0.1.0</AssemblyVersion>
+    <FileVersion>0.0.1.0</FileVersion>
+    <InformationalVersion>0.0.1-beta.1</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\Tools\Everything\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>tools\everything\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+    </Content>
   </ItemGroup>
 
 </Project>
