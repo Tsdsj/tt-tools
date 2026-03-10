@@ -5,7 +5,6 @@
         Title="TtLauncher"
         Width="860"
         SizeToContent="Height"
-        MaxHeight="640"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -29,6 +28,15 @@
         <SolidColorBrush x:Key="TextSecondary" Color="#B8BAC1"/>
         <SolidColorBrush x:Key="TextHint" Color="#898C94"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#8EB5FF"/>
+        <LinearGradientBrush x:Key="SelectedRowGlassBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#22FFFFFF" Offset="0"/>
+            <GradientStop Color="#18FFFFFF" Offset="0.58"/>
+            <GradientStop Color="#12B8CFFF" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="SelectedRowAccentBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#BCE0FF" Offset="0"/>
+            <GradientStop Color="#7FB8FF" Offset="1"/>
+        </LinearGradientBrush>
         <Style x:Key="SearchBoxStyle" TargetType="TextBox">
             <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
             <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}"/>
@@ -50,7 +58,8 @@
         </Style>
         <Style x:Key="TypeTagStyle" TargetType="Border">
             <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="8,3"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="Margin" Value="16,0,0,0"/>
             <Setter Property="Background" Value="#14FFFFFF"/>
             <Setter Property="BorderBrush" Value="#12FFFFFF"/>
             <Setter Property="BorderThickness" Value="1"/>
@@ -73,8 +82,8 @@
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding HasItems, ElementName=ResultList}" Value="True">
-                    <Setter Property="MaxHeight" Value="520"/>
+                <DataTrigger Binding="{Binding HasResults}" Value="True">
+                    <Setter Property="MaxHeight" Value="560"/>
                     <Setter Property="Opacity" Value="1"/>
                     <Setter Property="Visibility" Value="Visible"/>
                     <Setter Property="RenderTransform">
@@ -85,7 +94,7 @@
                     <DataTrigger.EnterActions>
                         <BeginStoryboard>
                             <Storyboard FillBehavior="HoldEnd">
-                                <DoubleAnimation Storyboard.TargetProperty="MaxHeight" From="0" To="520" Duration="0:0:0.24" EasingFunction="{StaticResource EaseOut}"/>
+                                <DoubleAnimation Storyboard.TargetProperty="MaxHeight" From="0" To="560" Duration="0:0:0.24" EasingFunction="{StaticResource EaseOut}"/>
                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.18"/>
                                 <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="-8" To="0" Duration="0:0:0.24" EasingFunction="{StaticResource EaseOut}"/>
                             </Storyboard>
@@ -94,7 +103,7 @@
                     <DataTrigger.ExitActions>
                         <BeginStoryboard>
                             <Storyboard FillBehavior="HoldEnd">
-                                <DoubleAnimation Storyboard.TargetProperty="MaxHeight" From="520" To="0" Duration="0:0:0.16" EasingFunction="{StaticResource EaseOut}"/>
+                                <DoubleAnimation Storyboard.TargetProperty="MaxHeight" From="560" To="0" Duration="0:0:0.16" EasingFunction="{StaticResource EaseOut}"/>
                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.14"/>
                                 <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="0" To="-8" Duration="0:0:0.16" EasingFunction="{StaticResource EaseOut}"/>
                             </Storyboard>
@@ -108,28 +117,42 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="ItemRoot" Margin="8,2" Padding="12,10" CornerRadius="12" Background="Transparent" BorderBrush="#00FFFFFF" BorderThickness="1">
+                        <Grid Margin="10,3" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="ItemScale" ScaleX="1" ScaleY="1"/>
+                            </Grid.RenderTransform>
+                            <Border x:Name="ItemGlow" Margin="0" CornerRadius="12" Background="#00FFFFFF" Opacity="0">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#78B4FF" BlurRadius="18" ShadowDepth="0" Opacity="0.35"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="ItemRoot" Padding="16,11,16,11" CornerRadius="12" Background="Transparent" BorderBrush="#00FFFFFF" BorderThickness="1">
                             <Grid>
-                                <Rectangle x:Name="ItemGlass" RadiusX="12" RadiusY="12" Fill="#10FFFFFF" Opacity="0"/>
+                                <Rectangle x:Name="ItemGlass" RadiusX="12" RadiusY="12" Fill="{StaticResource SelectedRowGlassBrush}" Opacity="0"/>
                                 <Rectangle x:Name="ItemSheen" Height="14" VerticalAlignment="Top" RadiusX="12" RadiusY="12" Fill="#28FFFFFF" Opacity="0"/>
                                 <Border x:Name="ItemInnerBorder" CornerRadius="12" BorderBrush="#00FFFFFF" BorderThickness="1" Margin="0.5"/>
-                                <ContentPresenter/>
+                                <Border x:Name="ItemAccent" Width="3" CornerRadius="2" Margin="0,7,0,7" HorizontalAlignment="Left" Background="{StaticResource SelectedRowAccentBrush}" Opacity="0"/>
+                                <ContentPresenter Margin="4,0,0,0"/>
                             </Grid>
-                        </Border>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="ItemRoot" Property="Background" Value="#08FFFFFF"/>
                                 <Setter TargetName="ItemRoot" Property="BorderBrush" Value="#10FFFFFF"/>
-                                <Setter TargetName="ItemGlass" Property="Opacity" Value="0.42"/>
-                                <Setter TargetName="ItemSheen" Property="Opacity" Value="0.18"/>
+                                <Setter TargetName="ItemGlass" Property="Opacity" Value="0.28"/>
+                                <Setter TargetName="ItemSheen" Property="Opacity" Value="0.14"/>
                                 <Setter TargetName="ItemInnerBorder" Property="BorderBrush" Value="#10FFFFFF"/>
+                                <Setter TargetName="ItemAccent" Property="Opacity" Value="0.35"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="ItemRoot" Property="Background" Value="#0CFFFFFF"/>
-                                <Setter TargetName="ItemRoot" Property="BorderBrush" Value="#22FFFFFF"/>
+                                <Setter TargetName="ItemRoot" Property="Background" Value="#0AFFFFFF"/>
+                                <Setter TargetName="ItemRoot" Property="BorderBrush" Value="#2AFFFFFF"/>
                                 <Setter TargetName="ItemGlass" Property="Opacity" Value="1"/>
-                                <Setter TargetName="ItemSheen" Property="Opacity" Value="0.36"/>
-                                <Setter TargetName="ItemInnerBorder" Property="BorderBrush" Value="#2AFFFFFF"/>
+                                <Setter TargetName="ItemSheen" Property="Opacity" Value="0.28"/>
+                                <Setter TargetName="ItemInnerBorder" Property="BorderBrush" Value="#34FFFFFF"/>
+                                <Setter TargetName="ItemAccent" Property="Opacity" Value="1"/>
+                                <Setter TargetName="ItemGlow" Property="Opacity" Value="1"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -139,7 +162,7 @@
     </Window.Resources>
 
     <Grid Background="Transparent">
-        <Border x:Name="RootBorder" CornerRadius="24" Background="{StaticResource WindowFillBrush}" BorderBrush="{StaticResource WindowBorderBrush}" BorderThickness="1" ClipToBounds="True">
+        <Border x:Name="RootBorder" CornerRadius="24" Background="{StaticResource WindowFillBrush}" BorderBrush="{StaticResource WindowBorderBrush}" BorderThickness="1" ClipToBounds="True" PreviewMouseLeftButtonDown="RootBorder_PreviewMouseLeftButtonDown">
             <Grid>
                 <Rectangle Fill="#0CFFFFFF"/>
                 <Rectangle Height="84" VerticalAlignment="Top" Fill="#18FFFFFF"/>
@@ -216,7 +239,7 @@
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding HasItems, ElementName=ResultList}" Value="True">
+                                            <DataTrigger Binding="{Binding HasResults}" Value="True">
                                                 <Setter Property="Visibility" Value="Visible"/>
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -224,14 +247,14 @@
                                 </TextBlock.Style>
                             </TextBlock>
                             <Grid Grid.Row="1">
-                                <ListBox x:Name="ResultList" Margin="0,0,0,10" ItemsSource="{Binding Results}" SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden" VirtualizingPanel.IsVirtualizing="True" MaxHeight="440">
+                                <ListBox x:Name="ResultList" Margin="0,0,0,12" ItemsSource="{Binding Results}" SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden" VirtualizingPanel.IsVirtualizing="True" MaxHeight="404">
                                     <ListBox.Style>
                                         <Style TargetType="ListBox">
                                             <Setter Property="Visibility" Value="Collapsed"/>
                                             <Style.Triggers>
-                                                <Trigger Property="HasItems" Value="True">
+                                                <DataTrigger Binding="{Binding HasResults}" Value="True">
                                                     <Setter Property="Visibility" Value="Visible"/>
-                                                </Trigger>
+                                                </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </ListBox.Style>
@@ -243,23 +266,38 @@
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <Border Grid.Column="0" Width="30" Height="30" Margin="0,0,12,0" CornerRadius="9" Background="#10FFFFFF" BorderBrush="#10FFFFFF" BorderThickness="1" VerticalAlignment="Center">
+                                                <Border x:Name="IconChrome" Grid.Column="0" Width="32" Height="32" Margin="0,0,14,0" CornerRadius="10" Background="#10FFFFFF" BorderBrush="#10FFFFFF" BorderThickness="1" VerticalAlignment="Center">
                                                     <Image Source="{Binding Icon, Converter={StaticResource IconFallback}}" Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
                                                 </Border>
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource TextPrimary}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"/>
-                                                    <TextBlock Text="{Binding Subtitle}" Margin="0,3,0,0" Foreground="{StaticResource TextSecondary}" FontSize="12" TextTrimming="CharacterEllipsis" FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,1,0,0">
+                                                    <TextBlock x:Name="TitleText" Text="{Binding Title}" Foreground="{StaticResource TextPrimary}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"/>
+                                                    <TextBlock x:Name="SubtitleText" Text="{Binding Subtitle}" Margin="0,4,0,0" Foreground="{StaticResource TextSecondary}" FontSize="12" TextTrimming="CharacterEllipsis" FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"/>
                                                 </StackPanel>
-                                                <Border Grid.Column="2" Style="{StaticResource TypeTagStyle}" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Tag}" Foreground="{StaticResource TextSecondary}" FontSize="12" FontWeight="SemiBold" FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"/>
+                                                <Border x:Name="TagChrome" Grid.Column="2" Style="{StaticResource TypeTagStyle}" VerticalAlignment="Center">
+                                                    <TextBlock x:Name="TagText" Text="{Binding Tag}" Foreground="{StaticResource TextSecondary}" FontSize="12" FontWeight="SemiBold" FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"/>
                                                 </Border>
                                             </Grid>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                                    <Setter TargetName="IconChrome" Property="Background" Value="#18FFFFFF"/>
+                                                    <Setter TargetName="IconChrome" Property="BorderBrush" Value="#24FFFFFF"/>
+                                                    <Setter TargetName="TitleText" Property="Foreground" Value="#FFFFFF"/>
+                                                    <Setter TargetName="SubtitleText" Property="Foreground" Value="#D7DBE2"/>
+                                                    <Setter TargetName="TagChrome" Property="Background" Value="#1AFFFFFF"/>
+                                                    <Setter TargetName="TagChrome" Property="BorderBrush" Value="#24FFFFFF"/>
+                                                    <Setter TargetName="TagText" Property="Foreground" Value="#F3F6FA"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                                    <Setter TargetName="IconChrome" Property="Background" Value="#14FFFFFF"/>
+                                                    <Setter TargetName="IconChrome" Property="BorderBrush" Value="#18FFFFFF"/>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
                             </Grid>
-                            <Border Grid.Row="2" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,0" Background="#660D0E11">
-                                <Grid Margin="18,10">
+                            <Border Grid.Row="2" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,0" Background="#660D0E11" Padding="0,0,0,6">
+                                <Grid Margin="18,10,18,16">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>

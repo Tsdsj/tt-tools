@@ -20,6 +20,7 @@ public class AppSearchProvider : ISearchProvider
     private List<AppEntry> _appIndex = new();
     private bool _indexed;
     private readonly object _lock = new();
+    private readonly Dictionary<string, ImageSource?> _iconCache = new(StringComparer.OrdinalIgnoreCase);
 
     public async Task InitializeAsync()
     {
@@ -90,14 +91,14 @@ public class AppSearchProvider : ISearchProvider
         }
     }
 
-    public Task<IReadOnlyList<SearchResultItem>> SearchAsync(string query, CancellationToken ct = default)
+    public async Task<IReadOnlyList<SearchResultItem>> SearchAsync(string query, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(query))
-            return Task.FromResult<IReadOnlyList<SearchResultItem>>(Array.Empty<SearchResultItem>());
+            return Array.Empty<SearchResultItem>();
 
         var lowerQuery = query.Trim().ToLowerInvariant();
 
-        var results = _appIndex
+        var results = await Task.Run(() => _appIndex
             .Select(app =>
             {
                 var lowerName = app.Name.ToLowerInvariant();
@@ -125,12 +126,12 @@ public class AppSearchProvider : ISearchProvider
                 Tag = "APP",
                 ExecutePath = x.App.ExecutablePath,
                 Arguments = x.App.Arguments,
-                Icon = ExtractIcon(x.App.ExecutablePath),
+                Icon = GetCachedIcon(x.App.ExecutablePath),
                 Score = x.Score
             })
-            .ToList();
+            .ToList(), ct);
 
-        return Task.FromResult<IReadOnlyList<SearchResultItem>>(results);
+        return results;
     }
 
     private static AppEntry? ResolveShortcut(string lnkPath)
@@ -190,6 +191,26 @@ public class AppSearchProvider : ISearchProvider
         {
             return null;
         }
+    }
+
+    private ImageSource? GetCachedIcon(string exePath)
+    {
+        lock (_lock)
+        {
+            if (_iconCache.TryGetValue(exePath, out var cachedIcon))
+            {
+                return cachedIcon;
+            }
+        }
+
+        var icon = ExtractIcon(exePath);
+
+        lock (_lock)
+        {
+            _iconCache[exePath] = icon;
+        }
+
+        return icon;
     }
 
     private static string TruncatePath(string path, int maxLength)
